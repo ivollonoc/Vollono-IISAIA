@@ -51,4 +51,4 @@ Las dos ambigüedades no rompieron nada, y ahí está la trampa: juzgando por el
 
 ## Prompts
 
-El registro versionado está en [prompts.md](prompts.md): arranca con el prompt 1 y crece un tramo por versión. Los tres prompts pensados de antemano viven en `prompts_guia.md`, que queda fuera del repo.
+El registro versionado está en [prompts.md](prompts.md): arranca con el prompt 1 y crece un tramo por versión.
