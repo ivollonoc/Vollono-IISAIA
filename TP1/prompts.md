@@ -106,3 +106,59 @@ siendo la rueda 3, lo que cambió es el CSS—.
 **Por qué las tres reglas:** son los bugs que este cambio invita. Si el desplegable escribe `confirmado`, saltea el paso de confirmar y rompe la simetría con las otras ruedas. Si el salto respeta el enfriamiento, el desplegable se siente roto. Y si "reacomodar el layout" se interpreta como "reordenar el array", `confirmado` de país termina apuntando a otro valor — la confusión clásica entre el estado y su orden en el DOM.
 
 **Qué devolvió:** las ruedas en pila con "Confirmar" abajo de todo, la de país contra el borde derecho con encabezado y borde en azul grisáceo (`#2f4f6f`) y fondo apenas azulado, y el buscador con desplegable de hasta 8 nombres. El orden de `estado.ruedas` quedó igual; lo único que se sumó al estado es `busquedaPais`. La ventana de país ahora admite dos renglones para los nombres largos, sin mostrar más de una opción.
+
+---
+
+## 3 — Modernizar la piel: bordes, tildes, estado de envío y paleta · v3
+
+```
+Última pasada, solo de apariencia y de feedback. No toques la mecánica ni
+el estado de las ruedas.
+
+Bordes:
+- Sacá la regla de "cero redondeo". Redondeá los bordes de la app, las
+  ruedas, las ventanas, los botones, el buscador y sus cajas, con un
+  radio chico y parejo: un poco más en los contenedores, menos en los
+  controles.
+
+Tildes:
+- Cuando una rueda queda confirmada, aparece un emoticón de tilde ✅ en
+  ese recuadro: uno en el encabezado de la rueda, y el valor confirmado
+  de abajo pasa a mostrarse con el ✅ adelante y en verde. Vale para las
+  tres ruedas de fecha y para la de país.
+- Si después se mueve la rueda sin volver a confirmar, el ✅ y el valor de
+  abajo se quedan con el último valor confirmado (el confirmado real), no
+  con lo que se está mirando en la ventana.
+
+Estado de envío:
+- Estado nuevo: envio, con "idle", "cargando" y "error".
+- Al click en "Continuar" (con las cuatro ruedas confirmadas y envio en
+  "idle"): envio pasa a "cargando" y, a la derecha del botón, aparece un
+  indicador de carga ("Enviando…" con un spinner). El botón queda
+  deshabilitado.
+- Después de ~1,8s, envio pasa a "error": el indicador se reemplaza por
+  un mensaje de error en rojo, también a la derecha del botón.
+- El error se va solo a los 3 segundos: envio vuelve a "idle", el
+  indicador desaparece y el botón se rehabilita.
+
+Paleta:
+- Cambiá los grises noventeros por una paleta más actual y liviana
+  —fondos claros, líneas finas y suaves, una sombra despegada en lugar de
+  la sombra dura— sin perder la seriedad de trámite: nada de colores
+  saturados ni degradés, el azul de país sigue siendo el único acento y
+  el resto es neutro. La tipografía monoespaciada se queda.
+```
+
+**Qué intentaba lograr:** que la pieza deje de parecer un formulario roto de 2003 y parezca un trámite actual —de esos que igual te hacen renegar—. El contraste es el punto: si la interfaz se ve prolija y moderna, la fricción de fondo —una opción por vez, el enfriamiento— molesta más, no menos, porque ya no tenés la excusa de "es viejo".
+
+**Por qué el ✅ apunta al confirmado y no a lo que se ve:** es el mismo cuidado de siempre entre el estado y su reflejo en el DOM. El valor de la ventana y el valor confirmado son dos cosas distintas: si el ✅ sigue a la ventana, estás diciendo "listo" sobre algo que el usuario todavía no fijó.
+
+**Por qué el envío falla:** un "Continuar" que confirma al toque no genera ninguna tensión. El cargando que termina en error —y que encima se borra solo antes de que lo termines de leer— es la última vuelta de tuerca: hiciste todo el recorrido tedioso y te quedás sin saber si sirvió.
+
+**Qué devolvió:** los bordes redondeados con radio 5–10px, el ✅ verde en el encabezado y en el valor de cada rueda confirmada, el spinner + "Enviando…" que a los ~1,8s se vuelve un cartel rojo a la derecha del botón y se borra a los 3s, y una paleta de blancos y grises fríos con el azul (`#35618e`) de país como único acento. La mecánica de las ruedas quedó igual; se sumó el estado `envio`.
+
+---
+
+## Conversación completa
+
+Tres prompts sobre el mismo artefacto, sin reiniciar el hilo. El resultado final es un único archivo HTML de 706 líneas, sin dependencias.

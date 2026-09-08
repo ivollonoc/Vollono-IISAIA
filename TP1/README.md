@@ -8,13 +8,13 @@ Doble click en `index.html`. Un solo archivo, sin dependencias.
 
 ## Qué me propuse construir
 
-Una bad UI hostil por estructura y no por engaño. No esconde nada —el contador debajo de cada ventana dice "opción 47 de 194", así que siempre sabés cuánto falta— y aun así cuesta, porque la única forma de recorrer 194 países es apretar ▼ de a uno, con un freno de 250 ms entre clicks que hace que mantener apretado no sirva de nada.
+Una bad UI hostil por estructura y no por engaño. No esconde nada —el contador debajo de cada ventana dice "opción 47 de 194", así que siempre sabés cuánto falta— y aun así cuesta, porque la única forma de recorrer 194 países es apretar ▼ de a uno, con un freno de 250 ms entre clicks que hace que mantener apretado no sirva de nada. Desde la v3 la piel es moderna y prolija, y eso hace que la fricción de fondo moleste más: ya no hay excusa de "es un formulario viejo".
 
 **v1** — prompt 1: las cuatro ruedas, el enfriamiento y la confirmación por rueda.
 
 **v2** — prompt 2, una pasada de layout: el botón "Confirmar" pasa a estar abajo de cada rueda; día, mes y año quedan agrupados a la izquierda y país se va contra el borde derecho, con otra tinta (encabezado y borde en azul grisáceo) para marcar que es otro tipo de dato. La única función nueva es un buscador arriba de la rueda de país: escribís y aparece un desplegable con los países que empiezan con ese texto; al elegir uno, la rueda salta a esa opción (pero seguís teniendo que confirmar). La mecánica hostil no se toca.
 
-El prompt 3 —envolver todo en una solicitud de trámite— está en la guía local `prompts_guia.md` (no versionada), todavía sin aplicar.
+**v3** — prompt 3, una pasada de piel y de feedback: bordes redondeados, paleta clara y actual (blancos y grises fríos, líneas finas, sombra despegada) manteniendo la seriedad de trámite, un ✅ verde en cada rueda al confirmarla, y un "Continuar" que muestra "Enviando…" con spinner, cae en un error rojo a la derecha del botón a los ~1,8 s y se borra solo a los 3 s. La mecánica y el estado de las ruedas no cambian; se suma el estado `envio`.
 
 ## Decisiones que tomé yo
 
@@ -31,6 +31,12 @@ El prompt 3 —envolver todo en una solicitud de trámite— está en la guía l
 **El buscador de país mueve `indice`, no `confirmado` (v2).** Elegir del desplegable deja la rueda apuntando al país, pero hay que tocar "Confirmar" igual que en las otras tres. Así el buscador es una ayuda de navegación y no un atajo que rompe la simetría, y el salto no dispara el enfriamiento porque no es un paso.
 
 **Reacomodar el layout no tocó el estado (v2).** "Confirmar" abajo, país a la derecha y su color aparte son CSS: `estado.ruedas` sigue en el mismo orden y país sigue siendo el índice 3. Lo único que se sumó al estado es `busquedaPais`.
+
+**El ✅ sigue al `confirmado`, no a la ventana (v3).** El tilde y el valor verde de abajo muestran el último valor confirmado de esa rueda. Si movés la rueda después de confirmar, quedan en el valor viejo hasta que toques "Confirmar" de nuevo — porque ese es el estado real, y la ventana es solo lo que estás mirando.
+
+**El envío falla a propósito (v3).** "Continuar" no confirma nada: entra en `cargando`, cae en `error` y el cartel se borra solo a los 3 s. Un envío que sale bien al toque no genera ninguna tensión; hacer todo el recorrido tedioso para terminar sin saber si sirvió, sí. Es simulado (no hay backend), con `setTimeout`.
+
+**Piel moderna, hueso igual (v3).** Bordes redondeados, paleta clara, sombra suave: la interfaz se ve actual, pero una opción por vez y el enfriamiento de 250 ms siguen intactos. El contraste es el punto.
 
 ## Qué salió mal y cómo lo corregí
 
