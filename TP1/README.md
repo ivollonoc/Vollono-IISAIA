@@ -1,6 +1,6 @@
 # TP 1 — Selector de fecha y país de a una opción
 
-Un selector de datos de nacimiento donde cada valor —día, mes, año y país— se elige de una "rueda" que muestra una sola opción por vez, sin lista y sin buscador, y que además no deja avanzar más rápido de un paso cada 250 ms. Funciona bien y usarlo es horrible, que era la idea.
+Un selector de datos de nacimiento donde cada valor —día, mes, año y país— se elige de una "rueda" que muestra una sola opción por vez, sin lista, y que no deja avanzar más rápido de un paso cada 250 ms. Funciona bien y usarlo es horrible, que era la idea. Desde la v2, la rueda de país tiene un buscador que suaviza el tramo más largo; día, mes y año siguen siendo a mano.
 
 ## Cómo se ejecuta
 
@@ -10,7 +10,11 @@ Doble click en `index.html`. Un solo archivo, sin dependencias.
 
 Una bad UI hostil por estructura y no por engaño. No esconde nada —el contador debajo de cada ventana dice "opción 47 de 194", así que siempre sabés cuánto falta— y aun así cuesta, porque la única forma de recorrer 194 países es apretar ▼ de a uno, con un freno de 250 ms entre clicks que hace que mantener apretado no sirva de nada.
 
-Esta es la **v1**, construida solo a partir del primer prompt: las cuatro ruedas, el enfriamiento y la confirmación por rueda. Los prompts 2 y 3 —favoritos y salto para darle algo de agencia al usuario, y el envoltorio de trámite— están en la guía local `prompts_guia.md` (no versionada), todavía sin aplicar.
+**v1** — prompt 1: las cuatro ruedas, el enfriamiento y la confirmación por rueda.
+
+**v2** — prompt 2, una pasada de layout: el botón "Confirmar" pasa a estar abajo de cada rueda; día, mes y año quedan agrupados a la izquierda y país se va contra el borde derecho, con otra tinta (encabezado y borde en azul grisáceo) para marcar que es otro tipo de dato. La única función nueva es un buscador arriba de la rueda de país: escribís y aparece un desplegable con los países que empiezan con ese texto; al elegir uno, la rueda salta a esa opción (pero seguís teniendo que confirmar). La mecánica hostil no se toca.
+
+El prompt 3 —envolver todo en una solicitud de trámite— está en la guía local `prompts_guia.md` (no versionada), todavía sin aplicar.
 
 ## Decisiones que tomé yo
 
@@ -23,6 +27,10 @@ Esta es la **v1**, construida solo a partir del primer prompt: las cuatro ruedas
 **Wrap-around al final de la rueda.** El prompt no decía qué pasa después del día 31 o del país 194. Elegí que diera la vuelta al principio. La otra opción —que se clave en el extremo— era más honesta como señal de "llegaste al final", pero te dejaba sin forma rápida de volver si te pasaste.
 
 **Confirmación por rueda.** Cada rueda se confirma sola y se puede volver a confirmar otro valor. "Continuar" recién se habilita con las cuatro confirmadas. Sirve para que el estado `confirmado` quede visible y separado del `indice` que estás moviendo.
+
+**El buscador de país mueve `indice`, no `confirmado` (v2).** Elegir del desplegable deja la rueda apuntando al país, pero hay que tocar "Confirmar" igual que en las otras tres. Así el buscador es una ayuda de navegación y no un atajo que rompe la simetría, y el salto no dispara el enfriamiento porque no es un paso.
+
+**Reacomodar el layout no tocó el estado (v2).** "Confirmar" abajo, país a la derecha y su color aparte son CSS: `estado.ruedas` sigue en el mismo orden y país sigue siendo el índice 3. Lo único que se sumó al estado es `busquedaPais`.
 
 ## Qué salió mal y cómo lo corregí
 

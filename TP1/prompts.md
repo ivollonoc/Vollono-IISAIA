@@ -56,3 +56,53 @@ Constraints:
 **Qué devolvió:** las cuatro ruedas funcionando, con el enfriamiento de 250ms y el contador "opción N de M". Respetó los tres constraints: un archivo, sin dependencias, y ruedas como divs en lugar de `<select>`.
 
 **Qué hice con eso:** lo acepté. Pero el prompt tenía dos huecos que no vi al escribirlo y que el modelo resolvió por su cuenta — están detallados en el README, porque son lo más interesante de esta entrega. No dije qué pasa al llegar al final de una rueda —¿el día 31 vuelve al 1 o se queda clavado?— y el modelo eligió que diera la vuelta. Tampoco dije de dónde salía la lista de países: la escribió él (quedaron 194), y no la verifiqué contra ninguna fuente.
+
+---
+
+## 2 — Pulir el layout: confirmar abajo, país aparte, buscador de país · v2
+
+```
+Reacomodá el layout de las ruedas y agregá una sola función nueva: poder
+buscar el país escribiendo.
+
+Layout:
+- El <button> "Confirmar" de cada rueda deja de estar al costado y pasa a
+  estar abajo de todo, debajo del contador. Cada rueda queda como una
+  pila vertical: nombre, ▲, ventana, contador, ▼, "Confirmar", y abajo el
+  valor confirmado.
+- Las ruedas de día, mes y año quedan agrupadas a la izquierda. La rueda
+  de país se separa del grupo y se va contra el borde derecho, con un
+  espacio visible en el medio.
+- Fecha y país se distinguen por color: las tres ruedas de fecha
+  mantienen el gris/beige actual; la de país usa otra tinta —borde y
+  encabezado en un tono frío, dentro de la misma paleta de trámite viejo,
+  sin redondeo ni sombras nuevas—. El color dice "esto es otro tipo de
+  dato", no decora.
+
+Buscar país:
+- Arriba de la ventana de la rueda de país hay un campo de texto. Estado
+  nuevo: busquedaPais (el texto tipeado, o "").
+- Mientras busquedaPais tiene texto, debajo del campo aparece un
+  desplegable con los países de opciones que empiezan con ese texto (sin
+  distinción de mayúsculas ni acentos), como máximo 8, uno por línea.
+- Click en una opción del desplegable: la rueda de país mueve indice a
+  esa opción y la muestra en la ventana. El desplegable se cierra y
+  busquedaPais vuelve a "".
+- El desplegable también se cierra al vaciar el campo. No queda abierto
+  tapando las otras ruedas.
+
+Tres reglas: elegir del desplegable mueve indice pero no toca confirmado
+—el país confirmado sigue siendo el anterior hasta que se toca
+"Confirmar"—; elegir del desplegable es un salto directo, no un paso, así
+que no dispara el enfriamiento de 250ms ni lo espera; y reacomodar el
+layout no cambia el orden de estado.ruedas ni los índices —país sigue
+siendo la rueda 3, lo que cambió es el CSS—.
+```
+
+**Qué intentaba lograr:** que la pieza se lea de una. Con las cuatro ruedas iguales y pegadas no se entiende que fecha y país son cosas distintas, y el "Confirmar" al costado le comía ancho a la ventana. Separar país, bajarle el botón a cada rueda y pintarlo distinto es puro layout: la mecánica hostil —una opción por vez, enfriamiento de 250ms— no se toca.
+
+**Por qué el buscador de país:** 194 países de a uno con ▲/▼ no es difícil, es tedio sin techo. El campo de texto le pone un piso: tipeás "Ar" y saltás cerca. No lo vuelve cómodo —seguís teniendo que confirmar, y día/mes/año siguen siendo a mano— pero deja de ser impracticable.
+
+**Por qué las tres reglas:** son los bugs que este cambio invita. Si el desplegable escribe `confirmado`, saltea el paso de confirmar y rompe la simetría con las otras ruedas. Si el salto respeta el enfriamiento, el desplegable se siente roto. Y si "reacomodar el layout" se interpreta como "reordenar el array", `confirmado` de país termina apuntando a otro valor — la confusión clásica entre el estado y su orden en el DOM.
+
+**Qué devolvió:** las ruedas en pila con "Confirmar" abajo de todo, la de país contra el borde derecho con encabezado y borde en azul grisáceo (`#2f4f6f`) y fondo apenas azulado, y el buscador con desplegable de hasta 8 nombres. El orden de `estado.ruedas` quedó igual; lo único que se sumó al estado es `busquedaPais`. La ventana de país ahora admite dos renglones para los nombres largos, sin mostrar más de una opción.

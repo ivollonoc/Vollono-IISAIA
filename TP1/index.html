@@ -58,11 +58,12 @@
       font-size: 12px;
     }
 
-    /* MAIN: fila de ruedas */
+    /* MAIN: fila de ruedas. Fecha agrupada a la izquierda, país contra el borde derecho. */
     main {
       display: flex;
       gap: 16px;
       flex-wrap: wrap;
+      align-items: flex-start;
       border: 2px solid #808080;
       border-top-color: #ffffff;
       border-left-color: #ffffff;
@@ -70,6 +71,7 @@
       padding: 14px;
     }
 
+    /* Cada rueda: pila vertical. El botón "Confirmar" va abajo de todo. */
     .rueda {
       border: 2px solid #000000;
       background-color: #d4d0c8;
@@ -77,6 +79,8 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      align-items: stretch;
+      width: 160px;
     }
 
     .rueda--activa {
@@ -99,18 +103,24 @@
       background-color: #000000;
     }
 
-    .rueda__cuerpo {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
+    /* País: mismo trámite viejo, otra tinta. El color dice "otro tipo de dato". */
+    .rueda--pais {
+      width: 240px;
+      margin-left: auto; /* la separa del grupo de fecha y la manda a la derecha */
+      border-color: #2f4f6f;
+      background-color: #cdd7df;
     }
 
-    /* Columna: flecha / ventana / flecha / contador, todo pegado */
-    .rueda__control {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      align-items: stretch;
+    .rueda--pais .rueda__nombre {
+      background-color: #2f4f6f;
+    }
+
+    .rueda--pais.rueda--activa {
+      outline-color: #2f4f6f;
+    }
+
+    .rueda--pais.rueda--activa .rueda__nombre {
+      background-color: #16324a;
     }
 
     .flecha {
@@ -140,9 +150,18 @@
       padding: 10px 12px;
       text-align: center;
       font-size: 16px;
-      min-width: 150px;
       white-space: nowrap;
       overflow: hidden; /* una sola opción, sin asomar las de al lado */
+    }
+
+    /* La ventana de país acepta dos renglones: sigue siendo UNA opción, más larga. */
+    .rueda--pais .ventana {
+      white-space: normal;
+      font-size: 13px;
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .contador {
@@ -151,20 +170,13 @@
       color: #333333;
     }
 
-    .rueda__lado {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
     .confirmar {
       font-family: inherit;
       font-size: 11px;
       border: 2px solid #000000;
       background-color: #e4e0d8;
       cursor: pointer;
-      padding: 4px 6px;
-      white-space: nowrap;
+      padding: 5px 6px;
     }
 
     .confirmar:active {
@@ -173,8 +185,52 @@
 
     .rueda__confirmado {
       font-size: 10px;
-      max-width: 120px;
       word-break: break-word;
+    }
+
+    /* Buscador de país: campo de texto + desplegable que se superpone. */
+    .pais-buscador {
+      position: relative;
+    }
+
+    .pais-input {
+      font-family: inherit;
+      font-size: 12px;
+      width: 100%;
+      border: 2px solid #000000;
+      border-top-color: #888888;
+      border-left-color: #888888;
+      background-color: #ffffff;
+      padding: 5px 6px;
+    }
+
+    .pais-desplegable {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      list-style: none;
+      border: 2px solid #000000;
+      background-color: #ffffff;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .pais-opcion {
+      padding: 5px 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border-bottom: 1px solid #cccccc;
+    }
+
+    .pais-opcion:last-child {
+      border-bottom: 0;
+    }
+
+    .pais-opcion:hover {
+      background-color: #2f4f6f;
+      color: #ffffff;
     }
 
     /* FOOTER */
@@ -243,6 +299,7 @@
       "use strict";
 
       var COOLDOWN = 250; // ms de enfriamiento entre pasos: mantener apretado no acelera
+      var PAIS_IDX = 3;   // índice de la rueda de país dentro de estado.ruedas
 
       function rango(desde, hasta) {
         var a = [];
@@ -250,7 +307,7 @@
         return a;
       }
 
-      // Lista escrita a mano, ~195 nombres en español. Se ordena en runtime.
+      // Lista escrita a mano, 194 nombres en español. Se ordena en runtime.
       var PAISES = [
         "Afganistán", "Albania", "Alemania", "Andorra", "Angola",
         "Antigua y Barbuda", "Arabia Saudita", "Argelia", "Argentina", "Armenia",
@@ -302,7 +359,8 @@
           { nombre: "País", opciones: PAISES,            indice: 0, confirmado: null }
         ],
         activa: null,
-        bloqueado: false
+        bloqueado: false,
+        busquedaPais: "" // texto tipeado en el buscador de país, o ""
       };
 
       var resumenVisible = false;
@@ -319,8 +377,31 @@
         });
       }
 
+      function normaliza(s) {
+        s = String(s).toLowerCase();
+        var con = "áàäâãéèëêíìïîóòöôõúùüû";
+        var sin = "aaaaaeeeeiiiiooooouuuu";
+        var out = "";
+        for (var i = 0; i < s.length; i++) {
+          var k = con.indexOf(s.charAt(i));
+          out += (k === -1) ? s.charAt(i) : sin.charAt(k);
+        }
+        return out;
+      }
+
       function todasConfirmadas() {
         return estado.ruedas.every(function (r) { return r.confirmado !== null; });
+      }
+
+      // Países cuyo nombre empieza con lo tipeado (sin mayúsculas ni acentos). Máx 8.
+      function paisesFiltrados() {
+        if (estado.busquedaPais === "") return [];
+        var q = normaliza(estado.busquedaPais);
+        var out = [];
+        for (var i = 0; i < PAISES.length && out.length < 8; i++) {
+          if (normaliza(PAISES[i]).indexOf(q) === 0) out.push(PAISES[i]);
+        }
+        return out;
       }
 
       function paso(i, dir) {
@@ -337,6 +418,16 @@
         }, COOLDOWN);
       }
 
+      // Elegir del desplegable: mueve indice, NO toca confirmado, NO usa el enfriamiento.
+      function seleccionarPais(nombre) {
+        var idx = PAISES.indexOf(nombre);
+        if (idx === -1) return;
+        estado.ruedas[PAIS_IDX].indice = idx;
+        estado.activa = PAIS_IDX;
+        estado.busquedaPais = "";
+        render();
+      }
+
       function confirmar(i) {
         var r = estado.ruedas[i];
         r.confirmado = r.opciones[r.indice];
@@ -351,31 +442,50 @@
         render();
       }
 
+      function ruedaHTML(r, i) {
+        var total = r.opciones.length;
+        var esPais = (i === PAIS_IDX);
+        var clases = "rueda";
+        if (esPais) clases += " rueda--pais";
+        if (estado.activa === i) clases += " rueda--activa";
+        var conf = r.confirmado === null ? "sin confirmar" : escapar(r.confirmado);
+
+        var buscador = "";
+        if (esPais) {
+          var lista = paisesFiltrados();
+          var desplegable = "";
+          if (estado.busquedaPais !== "" && lista.length > 0) {
+            desplegable = '<ul class="pais-desplegable">' + lista.map(function (p) {
+              return '<li class="pais-opcion" data-pais="' + escapar(p) + '">' + escapar(p) + "</li>";
+            }).join("") + "</ul>";
+          }
+          buscador =
+            '<div class="pais-buscador">' +
+              '<input class="pais-input" type="text" autocomplete="off" spellcheck="false" ' +
+                'placeholder="escribir país…" aria-label="Buscar país" ' +
+                'value="' + escapar(estado.busquedaPais) + '">' +
+              desplegable +
+            "</div>";
+        }
+
+        return "" +
+          '<section class="' + clases + '">' +
+            '<div class="rueda__nombre">' + escapar(r.nombre) + "</div>" +
+            buscador +
+            '<button class="flecha" type="button" data-idx="' + i + '" data-dir="-1" ' +
+              'aria-label="Opción anterior de ' + escapar(r.nombre) + '">&#9650;</button>' +
+            '<div class="ventana"><span class="ventana__valor">' +
+              escapar(r.opciones[r.indice]) + "</span></div>" +
+            '<div class="contador">opción ' + (r.indice + 1) + " de " + total + "</div>" +
+            '<button class="flecha" type="button" data-idx="' + i + '" data-dir="1" ' +
+              'aria-label="Opción siguiente de ' + escapar(r.nombre) + '">&#9660;</button>' +
+            '<button class="confirmar" type="button" data-confirmar="' + i + '">Confirmar</button>' +
+            '<div class="rueda__confirmado">' + conf + "</div>" +
+          "</section>";
+      }
+
       function render() {
-        contRuedas.innerHTML = estado.ruedas.map(function (r, i) {
-          var total = r.opciones.length;
-          var clases = "rueda" + (estado.activa === i ? " rueda--activa" : "");
-          var conf = r.confirmado === null ? "sin confirmar" : escapar(r.confirmado);
-          return "" +
-            '<section class="' + clases + '">' +
-              '<div class="rueda__nombre">' + escapar(r.nombre) + "</div>" +
-              '<div class="rueda__cuerpo">' +
-                '<div class="rueda__control">' +
-                  '<button class="flecha" type="button" data-idx="' + i + '" data-dir="-1" ' +
-                    'aria-label="Opción anterior de ' + escapar(r.nombre) + '">&#9650;</button>' +
-                  '<div class="ventana"><span class="ventana__valor">' +
-                    escapar(r.opciones[r.indice]) + "</span></div>" +
-                  '<button class="flecha" type="button" data-idx="' + i + '" data-dir="1" ' +
-                    'aria-label="Opción siguiente de ' + escapar(r.nombre) + '">&#9660;</button>' +
-                  '<div class="contador">opción ' + (r.indice + 1) + " de " + total + "</div>" +
-                "</div>" +
-                '<div class="rueda__lado">' +
-                  '<button class="confirmar" type="button" data-confirmar="' + i + '">Confirmar</button>' +
-                  '<div class="rueda__confirmado">' + conf + "</div>" +
-                "</div>" +
-              "</div>" +
-            "</section>";
-        }).join("");
+        contRuedas.innerHTML = estado.ruedas.map(ruedaHTML).join("");
 
         contRuedas.querySelectorAll(".flecha").forEach(function (b) {
           if (estado.bloqueado) b.disabled = true;
@@ -383,11 +493,33 @@
             paso(parseInt(b.getAttribute("data-idx"), 10), parseInt(b.getAttribute("data-dir"), 10));
           });
         });
+
         contRuedas.querySelectorAll(".confirmar").forEach(function (b) {
           b.addEventListener("click", function () {
             confirmar(parseInt(b.getAttribute("data-confirmar"), 10));
           });
         });
+
+        contRuedas.querySelectorAll(".pais-opcion").forEach(function (li) {
+          li.addEventListener("click", function () {
+            seleccionarPais(li.getAttribute("data-pais"));
+          });
+        });
+
+        var input = contRuedas.querySelector(".pais-input");
+        if (input) {
+          input.addEventListener("input", function () {
+            var pos = input.selectionStart;
+            estado.busquedaPais = input.value;
+            estado.activa = PAIS_IDX;
+            render();
+            var nuevo = contRuedas.querySelector(".pais-input");
+            if (nuevo) {
+              nuevo.focus();
+              try { nuevo.setSelectionRange(pos, pos); } catch (e) {}
+            }
+          });
+        }
 
         var hechas = estado.ruedas.filter(function (r) { return r.confirmado !== null; }).length;
         elProgreso.textContent = hechas + " de 4 datos confirmados";
