@@ -1,6 +1,8 @@
 # TP 1 — Selector de fecha y país de a una opción
-
-Un selector de datos de nacimiento donde cada valor —día, mes, año y país— se elige de una "rueda" que muestra una sola opción por vez, sin lista, y que no deja avanzar más rápido de un paso cada 250 ms. Funciona bien y usarlo es horrible, que era la idea. Desde la v2, la rueda de país tiene un buscador que suaviza el tramo más largo; día, mes y año siguen siendo a mano.
+El HTML es un formulario con ingreso de datos de nacimiento (fecha y pais) pensado como un paso intermedio de una solicitud de datos.
+Tiene un  selector de datos de nacimiento donde cada valor —día, mes, año y país— se elige de una "rueda" que muestra una sola opción por vez, sin lista, y que no deja avanzar más rápido de un paso cada 250 ms. Funciona bien pero no es amigable para el usuario. 
+En la v2 se redibuja el layout y se agrega la posibilidad de filtrar y seleccionar dentro de un desplegable para la categoría de pais lo que reduce el tiempo necesario para ingresar ese input puntual.
+En la v3 se agregan confrimaciones explícitas tras el ingreso de cada campo y se ingresan nuevos estados tras poner "Continuar" en el formulario en general. Marca un "enviando" que falla tras unos segundos y resetea al estado anterior.
 
 ## Cómo se ejecuta
 
