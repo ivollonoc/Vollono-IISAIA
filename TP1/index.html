@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datos de nacimiento — Selección</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      border-radius: 0 !important; /* Cero redondeo estricto */
+    }
+
+    body {
+      background-color: #b0b0b0;
+      font-family: "Courier New", Courier, monospace;
+      color: #000000;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 920px;
+      background-color: #d4d0c8;
+      border: 3px solid #000000;
+      box-shadow: 6px 6px 0px #000000;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* HEADER */
+    header {
+      border: 2px solid #808080;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      background-color: #e4e0d8;
+      padding: 10px;
+    }
+
+    .app__titulo {
+      font-size: 15px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px dashed #808080;
+      padding-bottom: 6px;
+      margin-bottom: 6px;
+    }
+
+    .progreso {
+      font-size: 12px;
+    }
+
+    /* MAIN: fila de ruedas */
+    main {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      border: 2px solid #808080;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      background-color: #cfcbc3;
+      padding: 14px;
+    }
+
+    .rueda {
+      border: 2px solid #000000;
+      background-color: #d4d0c8;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .rueda--activa {
+      outline: 2px solid #000000;
+      outline-offset: 1px;
+    }
+
+    .rueda__nombre {
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-align: center;
+      background-color: #808080;
+      color: #ffffff;
+      padding: 3px 4px;
+      letter-spacing: 1px;
+    }
+
+    .rueda--activa .rueda__nombre {
+      background-color: #000000;
+    }
+
+    .rueda__cuerpo {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+
+    /* Columna: flecha / ventana / flecha / contador, todo pegado */
+    .rueda__control {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: stretch;
+    }
+
+    .flecha {
+      font-family: inherit;
+      font-size: 12px;
+      line-height: 1;
+      border: 2px solid #000000;
+      background-color: #e4e0d8;
+      cursor: pointer;
+      padding: 3px 0;
+    }
+
+    .flecha:active {
+      background-color: #b8b4ac;
+    }
+
+    .flecha:disabled {
+      color: #888888;
+      cursor: default;
+    }
+
+    .ventana {
+      border: 2px solid #000000;
+      border-top-color: #888888;
+      border-left-color: #888888;
+      background-color: #ffffff;
+      padding: 10px 12px;
+      text-align: center;
+      font-size: 16px;
+      min-width: 150px;
+      white-space: nowrap;
+      overflow: hidden; /* una sola opción, sin asomar las de al lado */
+    }
+
+    .contador {
+      font-size: 10px;
+      text-align: center;
+      color: #333333;
+    }
+
+    .rueda__lado {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .confirmar {
+      font-family: inherit;
+      font-size: 11px;
+      border: 2px solid #000000;
+      background-color: #e4e0d8;
+      cursor: pointer;
+      padding: 4px 6px;
+      white-space: nowrap;
+    }
+
+    .confirmar:active {
+      background-color: #b8b4ac;
+    }
+
+    .rueda__confirmado {
+      font-size: 10px;
+      max-width: 120px;
+      word-break: break-word;
+    }
+
+    /* FOOTER */
+    footer {
+      border: 2px solid #808080;
+      border-top-color: #ffffff;
+      border-left-color: #ffffff;
+      background-color: #e4e0d8;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .footer__confirmados {
+      font-size: 12px;
+      white-space: pre-line;
+    }
+
+    .footer__resumen {
+      font-size: 13px;
+      font-weight: bold;
+      border: 2px solid #000000;
+      background-color: #ffffff;
+      padding: 8px;
+    }
+
+    #continuar {
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border: 2px solid #000000;
+      background-color: #c8c4bc;
+      cursor: pointer;
+      padding: 8px 14px;
+      align-self: flex-start;
+    }
+
+    #continuar:disabled {
+      color: #888888;
+      cursor: default;
+      background-color: #d8d4cc;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="app__titulo">Datos de nacimiento</div>
+      <div class="progreso" id="progreso" aria-live="polite">0 de 4 datos confirmados</div>
+    </header>
+
+    <main id="ruedas"></main>
+
+    <footer>
+      <div class="footer__confirmados" id="confirmados"></div>
+      <div class="footer__resumen" id="resumen" hidden></div>
+      <button id="continuar" type="button" disabled>Continuar</button>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var COOLDOWN = 250; // ms de enfriamiento entre pasos: mantener apretado no acelera
+
+      function rango(desde, hasta) {
+        var a = [];
+        for (var i = desde; i <= hasta; i++) a.push(String(i));
+        return a;
+      }
+
+      // Lista escrita a mano, ~195 nombres en español. Se ordena en runtime.
+      var PAISES = [
+        "Afganistán", "Albania", "Alemania", "Andorra", "Angola",
+        "Antigua y Barbuda", "Arabia Saudita", "Argelia", "Argentina", "Armenia",
+        "Australia", "Austria", "Azerbaiyán", "Bahamas", "Bangladés",
+        "Barbados", "Baréin", "Bélgica", "Belice", "Benín",
+        "Bielorrusia", "Birmania", "Bolivia", "Bosnia y Herzegovina", "Botsuana",
+        "Brasil", "Brunéi", "Bulgaria", "Burkina Faso", "Burundi",
+        "Bután", "Cabo Verde", "Camboya", "Camerún", "Canadá",
+        "Catar", "Chad", "Chile", "China", "Chipre",
+        "Ciudad del Vaticano", "Colombia", "Comoras", "Corea del Norte", "Corea del Sur",
+        "Costa de Marfil", "Costa Rica", "Croacia", "Cuba", "Dinamarca",
+        "Dominica", "Ecuador", "Egipto", "El Salvador", "Emiratos Árabes Unidos",
+        "Eritrea", "Eslovaquia", "Eslovenia", "España", "Estados Unidos",
+        "Estonia", "Esuatini", "Etiopía", "Filipinas", "Finlandia",
+        "Fiyi", "Francia", "Gabón", "Gambia", "Georgia",
+        "Ghana", "Granada", "Grecia", "Guatemala", "Guinea",
+        "Guinea-Bisáu", "Guinea Ecuatorial", "Guyana", "Haití", "Honduras",
+        "Hungría", "India", "Indonesia", "Irak", "Irán",
+        "Irlanda", "Islandia", "Islas Marshall", "Islas Salomón", "Israel",
+        "Italia", "Jamaica", "Japón", "Jordania", "Kazajistán",
+        "Kenia", "Kirguistán", "Kiribati", "Kuwait", "Laos",
+        "Lesoto", "Letonia", "Líbano", "Liberia", "Libia",
+        "Liechtenstein", "Lituania", "Luxemburgo", "Macedonia del Norte", "Madagascar",
+        "Malasia", "Malaui", "Maldivas", "Malí", "Malta",
+        "Marruecos", "Mauricio", "Mauritania", "México", "Micronesia",
+        "Moldavia", "Mónaco", "Mongolia", "Montenegro", "Mozambique",
+        "Namibia", "Nauru", "Nepal", "Nicaragua", "Níger",
+        "Nigeria", "Noruega", "Nueva Zelanda", "Omán", "Países Bajos",
+        "Pakistán", "Palaos", "Panamá", "Papúa Nueva Guinea", "Paraguay",
+        "Perú", "Polonia", "Portugal", "Reino Unido", "República Centroafricana",
+        "República Checa", "República del Congo", "República Democrática del Congo",
+        "República Dominicana", "Ruanda", "Rumania", "Rusia", "Samoa",
+        "San Cristóbal y Nieves", "San Marino", "San Vicente y las Granadinas",
+        "Santa Lucía", "Santo Tomé y Príncipe", "Senegal", "Serbia", "Seychelles",
+        "Sierra Leona", "Singapur", "Siria", "Somalia", "Sri Lanka",
+        "Sudáfrica", "Sudán", "Sudán del Sur", "Suecia", "Suiza",
+        "Surinam", "Tailandia", "Tanzania", "Tayikistán", "Timor Oriental",
+        "Togo", "Tonga", "Trinidad y Tobago", "Túnez", "Turkmenistán",
+        "Turquía", "Tuvalu", "Ucrania", "Uganda", "Uruguay",
+        "Uzbekistán", "Vanuatu", "Venezuela", "Vietnam", "Yemen",
+        "Yibuti", "Zambia", "Zimbabue"
+      ].sort(function (a, b) { return a.localeCompare(b, "es"); });
+
+      var estado = {
+        ruedas: [
+          { nombre: "Día",  opciones: rango(1, 31),      indice: 0, confirmado: null },
+          { nombre: "Mes",  opciones: rango(1, 12),      indice: 0, confirmado: null },
+          { nombre: "Año",  opciones: rango(1920, 2010), indice: 0, confirmado: null },
+          { nombre: "País", opciones: PAISES,            indice: 0, confirmado: null }
+        ],
+        activa: null,
+        bloqueado: false
+      };
+
+      var resumenVisible = false;
+
+      var contRuedas = document.getElementById("ruedas");
+      var elProgreso = document.getElementById("progreso");
+      var elConfirmados = document.getElementById("confirmados");
+      var elResumen = document.getElementById("resumen");
+      var btnContinuar = document.getElementById("continuar");
+
+      function escapar(s) {
+        return String(s).replace(/[&<>"]/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+        });
+      }
+
+      function todasConfirmadas() {
+        return estado.ruedas.every(function (r) { return r.confirmado !== null; });
+      }
+
+      function paso(i, dir) {
+        if (estado.bloqueado) return;
+        var r = estado.ruedas[i];
+        var n = r.opciones.length;
+        estado.activa = i;
+        r.indice = (r.indice + dir + n) % n; // wrap-around al llegar al extremo
+        estado.bloqueado = true;
+        render();
+        setTimeout(function () {
+          estado.bloqueado = false;
+          render();
+        }, COOLDOWN);
+      }
+
+      function confirmar(i) {
+        var r = estado.ruedas[i];
+        r.confirmado = r.opciones[r.indice];
+        estado.activa = i;
+        resumenVisible = false;
+        render();
+      }
+
+      function continuar() {
+        if (!todasConfirmadas()) return;
+        resumenVisible = true;
+        render();
+      }
+
+      function render() {
+        contRuedas.innerHTML = estado.ruedas.map(function (r, i) {
+          var total = r.opciones.length;
+          var clases = "rueda" + (estado.activa === i ? " rueda--activa" : "");
+          var conf = r.confirmado === null ? "sin confirmar" : escapar(r.confirmado);
+          return "" +
+            '<section class="' + clases + '">' +
+              '<div class="rueda__nombre">' + escapar(r.nombre) + "</div>" +
+              '<div class="rueda__cuerpo">' +
+                '<div class="rueda__control">' +
+                  '<button class="flecha" type="button" data-idx="' + i + '" data-dir="-1" ' +
+                    'aria-label="Opción anterior de ' + escapar(r.nombre) + '">&#9650;</button>' +
+                  '<div class="ventana"><span class="ventana__valor">' +
+                    escapar(r.opciones[r.indice]) + "</span></div>" +
+                  '<button class="flecha" type="button" data-idx="' + i + '" data-dir="1" ' +
+                    'aria-label="Opción siguiente de ' + escapar(r.nombre) + '">&#9660;</button>' +
+                  '<div class="contador">opción ' + (r.indice + 1) + " de " + total + "</div>" +
+                "</div>" +
+                '<div class="rueda__lado">' +
+                  '<button class="confirmar" type="button" data-confirmar="' + i + '">Confirmar</button>' +
+                  '<div class="rueda__confirmado">' + conf + "</div>" +
+                "</div>" +
+              "</div>" +
+            "</section>";
+        }).join("");
+
+        contRuedas.querySelectorAll(".flecha").forEach(function (b) {
+          if (estado.bloqueado) b.disabled = true;
+          b.addEventListener("click", function () {
+            paso(parseInt(b.getAttribute("data-idx"), 10), parseInt(b.getAttribute("data-dir"), 10));
+          });
+        });
+        contRuedas.querySelectorAll(".confirmar").forEach(function (b) {
+          b.addEventListener("click", function () {
+            confirmar(parseInt(b.getAttribute("data-confirmar"), 10));
+          });
+        });
+
+        var hechas = estado.ruedas.filter(function (r) { return r.confirmado !== null; }).length;
+        elProgreso.textContent = hechas + " de 4 datos confirmados";
+
+        elConfirmados.textContent = estado.ruedas.map(function (r) {
+          return r.nombre + ": " + (r.confirmado === null ? "—" : r.confirmado);
+        }).join("\n");
+
+        btnContinuar.disabled = !todasConfirmadas();
+
+        if (resumenVisible && todasConfirmadas()) {
+          var v = {};
+          estado.ruedas.forEach(function (r) { v[r.nombre] = r.confirmado; });
+          elResumen.textContent =
+            "Fecha de nacimiento: " + v["Día"] + "/" + v["Mes"] + "/" + v["Año"] +
+            "   ·   País de nacimiento: " + v["País"];
+          elResumen.hidden = false;
+        } else {
+          elResumen.hidden = true;
+        }
+      }
+
+      btnContinuar.addEventListener("click", continuar);
+
+      render();
+    })();
+  </script>
+</body>
+</html>
